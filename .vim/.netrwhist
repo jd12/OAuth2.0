@@ -1,0 +1,7 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhist_cnt =5
+let g:netrw_dirhist_1='/Users/jddevaughnbrown/version_control/fullstack/multi_user_blog/templates'
+let g:netrw_dirhist_2='/Users/jddevaughnbrown/Downloads/gradle-test/build'
+let g:netrw_dirhist_3='/Users/jddevaughnbrown/.vim'
+let g:netrw_dirhist_4='/Users/jddevaughnbrown/workspace/grocery-simulator-gradle/build'
+let g:netrw_dirhist_5='/Users/jddevaughnbrown/workspace/grocery-simulator-gradle/config/checkstyle'
