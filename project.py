@@ -53,42 +53,34 @@ def fbconnect():
     access_token = request.data
     print "Access token received %s " % access_token
 
+    # Exchange client token for long-lived server-side token
     app_id = json.loads(
         open('fb_client_secrets.json', 'r').read())['web']['app_id']
     app_secret = json.loads(
         open('fb_client_secrets.json', 'r').read())['web']['app_secret']
-    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (app_id, app_secret, access_token)
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
+    url = ('https://graph.facebook.com/v2.9/oauth/access_token?'
+           'grant_type=fb_exchange_token&client_id=%s&client_secret=%s'
+           '&fb_exchange_token=%s') % (app_id, app_secret, access_token)
+    http = httplib2.Http()
+    result = http.request(url, 'GET')[1]
     data = json.loads(result)
 
     # Extract the access token from response
     token = 'access_token=' + data['access_token']
+    # The token must be stored in the login_session in order to properly logout
+    login_session['access_token'] = data['access_token']
 
-
-
-    url = 'https://graph.facebook.com/v2.9/me?access_token=%s&fields=name,id,email' % token
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
-    # print "url sent for API access: %s" % url
-    # print "API JSON result: %s" % result
-
+    # Use token to get user info from API.
+    url = 'https://graph.facebook.com/v2.9/me?%s&fields=name,id,email,picture' % token
+    http = httplib2.Http()
+    result = http.request(url, 'GET')[1]
     data = json.loads(result)
+    print data
     login_session['provider'] = 'facebook'
     login_session['username'] = data["name"]
     login_session['email'] = data["email"]
     login_session['facebook_id'] = data["id"]
-
-    # The token must be stored in the login_session in order to properly logout
-    login_session['access_token'] = token
-
-    # Get user picture
-    url = 'https://graph.facebook.com/v2.9/me/picture?access_token=%s&redirect=0&height=200&width=200' % token
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
-    data = json.loads(result)
-
-    login_session['picture'] = data["data"]["url"]
+    login_session['picture'] = data["picture"]["data"]["url"]
 
     # see if user exists
     user_id = getUserID(login_session['email'])
