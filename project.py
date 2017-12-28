@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
-app = Flask(__name__)
 
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
@@ -15,6 +14,9 @@ import httplib2
 import json
 from flask import make_response
 import requests
+
+
+
 
 
 app = Flask(__name__)
@@ -44,6 +46,58 @@ def showLogin():
     # Render login template
     return render_template('login.html', STATE=state);
 
+@app.route('/githubconnect')
+def githubconnect():
+    print "Request state"
+    print request
+    print "Login session " + login_session['state']
+    # Validate state token
+    # if request.args.get('state') != login_session['state']:
+    #     response = make_response(json.dumps('Invalid state parameter.'), 401)
+    #     response.headers['Content-Type'] = 'application/json'
+    #     return response
+
+    # app.config['GITHUB_CLIENT_ID'] = '18c00a7c018aa1140ceb'
+    # app.config['GITHUB_CLIENT_SECRET'] = 'ce80b3557d6a3e6fc8f6137b6b7a3ee724369447'
+    code = request.args.get('code')
+    print "Code is"
+    print code
+    # Exchange client token for long-lived server-side token
+    app_id = json.loads(
+        open('github_client_secrets.json', 'r').read())['web']['app_id']
+    app_secret = json.loads(
+        open('github_client_secrets.json', 'r').read())['web']['app_secret']
+    # url = ('https://github.com/login/oauth/access_token?'
+    #         'client_id=%s&client_secret=%s&code=%s') % (app_id, app_secret, code)
+    url = 'https://github.com/login/oauth/access_token'
+    payload = {
+        'client_id': app_id,
+        'client_secret': app_secret,
+        'code': request.args.get('code')
+    }
+    headers = {'Accept': 'application/json'}
+    r = requests.post(url, params=payload, headers=headers)
+
+    response = r.json()
+    print "Printing Response"
+    print response
+    # get access_token from response and store in session
+    if 'access_token' not in response:
+        response = make_response(json.dumps('Github did not return an access token.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    login_session['access_token'] = response['access_token']
+    # get username from github api
+    url = 'https://api.github.com/user?access_token=%s' % login_session['access_token']
+    http = httplib2.Http()
+    result = http.request(url, 'GET')[1]
+    print "User is "
+    print result
+    data = json.loads(result)
+
+
+
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
     if request.args.get('state') != login_session['state']:
@@ -63,6 +117,8 @@ def fbconnect():
            '&fb_exchange_token=%s') % (app_id, app_secret, access_token)
     http = httplib2.Http()
     result = http.request(url, 'GET')[1]
+    print "Printing result"
+    print result
     data = json.loads(result)
 
     # Extract the access token from response
