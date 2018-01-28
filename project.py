@@ -52,10 +52,10 @@ def githubconnect():
     print request
     print "Login session " + login_session['state']
     # Validate state token
-    # if request.args.get('state') != login_session['state']:
-    #     response = make_response(json.dumps('Invalid state parameter.'), 401)
-    #     response.headers['Content-Type'] = 'application/json'
-    #     return response
+    if request.args.get('state') != login_session['state']:
+        response = make_response(json.dumps('Invalid state parameter.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     # app.config['GITHUB_CLIENT_ID'] = '18c00a7c018aa1140ceb'
     # app.config['GITHUB_CLIENT_SECRET'] = 'ce80b3557d6a3e6fc8f6137b6b7a3ee724369447'
@@ -95,6 +95,29 @@ def githubconnect():
     print "User is "
     print result
     data = json.loads(result)
+    login_session['provider'] = 'github'
+    login_session['username'] = data["name"]
+    login_session['email'] = data["email"]
+    login_session['client_id'] = app_id
+    login_session['picture'] = data["avatar_url"]
+
+    # see if user exists
+    user_id = getUserID(login_session['email'])
+    if user_id is None:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
+
+    output = ''
+    output += '<h1>Welcome, '
+    output += login_session['username']
+    output += '!</h1>'
+    output += '<img src="'
+    output += login_session['picture']
+    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    flash("you are now logged in as %s" % login_session['username'])
+    print "done!"
+    return redirect(url_for('showRestaurants'))
+
 
 
 
@@ -165,7 +188,15 @@ def fbdisconnect():
     result = h.request(url, 'DELETE')[1]
     return "you have been logged out"
 
-
+@app.route('/githubdisconnect')
+def githubdisconnect():
+    client_id = login_session['client_id']
+    # The access token must be included to successfully logout
+    access_token = login_session['access_token']
+    url = 'https://api.github.com/applications/%s/tokens/%s' % (client_id, access_token)
+    h = httplib2.Http()
+    result = h.request(url, 'DELETE')[1]
+    return "you have been logged out"
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
@@ -288,11 +319,15 @@ def disconnect():
         if login_session['provider'] == 'google':
             gdisconnect()
             del login_session['gplus_id']
-            del login_session['access_token']
         if login_session['provider'] == 'facebook':
             fbdisconnect()
             del login_session['facebook_id']
+        if login_session['provider'] == 'github':
+            githubdisconnect()
+            del login_session['client_id']
+
         # Finish cleaning out the login_session
+        del login_session['access_token']
         del login_session['username']
         del login_session['email']
         del login_session['picture']
