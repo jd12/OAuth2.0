@@ -48,6 +48,8 @@ def showLogin():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    CLIENT_ID = json.loads(
+        open('client_secrets.json', 'r').read())['web']['client_id']
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
