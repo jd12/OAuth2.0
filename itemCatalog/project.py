@@ -234,7 +234,7 @@ def githubconnect():
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     print "done!"
-    return redirect(url_for('catalog'))
+    return redirect(url_for('showCategories'))
 
 
 
@@ -323,6 +323,16 @@ def disconnect():
         flash("You were not logged in")
         return redirect(url_for('showCategories'))
 
+
+@app.route('/githubdisconnect')
+def githubdisconnect():
+    client_id = login_session['client_id']
+    # The access token must be included to successfully logout
+    access_token = login_session['access_token']
+    url = 'https://api.github.com/applications/%s/tokens/%s' % (client_id, access_token)
+    h = httplib2.Http()
+    result = h.request(url, 'DELETE')[1]
+    return "you have been logged out"
 # Disconnect - Revoke a user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
@@ -368,10 +378,24 @@ def catalogJSON():
 @app.route('/catalog/')
 def showCategories():
   categories = session.query(Category).order_by(asc(Category.name))
-  # if 'username' not in login_session:
-  #     return render_template('publicrestaurants.html', restaurants=restaurants)
-  # else:
-  return render_template('categories.html', categories=categories)
+  if 'username' not in login_session:
+      return render_template('public_categories.html', categories=categories)
+  else:
+      return render_template('categories.html', categories=categories)
+
+@app.route('/catalog/new/', methods=['GET', 'POST'])
+def newCategory():
+  if 'username' not in login_session:
+    return redirect('/login')
+  if request.method == 'POST':
+      newCategory = Category(name=request.form['name'],
+                                user_id=login_session['user_id'])
+      session.add(newCategory)
+      flash('New Category %s Successfully Created' % newCategory.name)
+      session.commit()
+      return redirect(url_for('showCatalog'))
+  else:
+      return render_template('newCategory.html')
 
 if __name__ == '__main__':
   app.secret_key = 'super_secret_key'
