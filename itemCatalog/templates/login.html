@@ -62,78 +62,7 @@
 
 <!-- End GOOGLE PLUS SIGN IN -->
 
-<!-- FACEBOOK SIGN IN -->
-<script>
-  window.fbAsyncInit = function() {
-    FB.init({
-      appId: '329027314267394',
-      cookie: true, // enable coookies to allow the server to access the session
-      xfbml: true, // parse social plugins on this page
-      version: 'v2.8' // use version 2.8
-    });
-  };
 
-  //Load the SDK asynchronously
-  (function(d, s, id) {
-    var js, fjs = d.getElementsByTagName(s)[0];
-    if (d.getElementById(id)) return;
-    js = d.createElement(s);
-    js.id = id;
-    js.src = 'https://connect.facebook.net/en_US/sdk.js';
-    fjs.parentNode.insertBefore(js, fjs);
-  }(document, 'script', 'facebook-jssdk'));
-
-  // Run a simple of the GRAPH API after login is successful
-  function sendTokenToServer() {
-    var access_token = FB.getAuthResponse()['accessToken'];
-    console.log(access_token);
-    console.log('Welcome! Fetching your information...');
-    FB.api('/me', function(response) {
-      console.log('Successful login for: ' + response.name);
-      $.ajax({
-        type: 'POST',
-        url: '/fbconnect?state={{STATE}}',
-        processData: false,
-        data: access_token,
-        contentType: 'application/octet-stream; charset=utf-8',
-        success: function(result) {
-          // Handle or verify the server response if necessary.
-          if (result) {
-            $('#result').html('Login Successful!<br>' + result +
-              '<br>Redirecting...')
-            setTimeout(function() {
-              window.location.href = "/catalog";
-            }, 4000);
-          } else {
-            $('#result').html('Failed to make a server-side call. Check your configuration and console.');
-          }
-        }
-      }); // end ajax function
-    }) // end fb.api function
-  }
-</script>
-
-<script>
-  $('#github-button').on('click', function() {
-    // Initialize with your OAuth.io app public key
-    OAuth.initialize('1cf50fe0f7fcaa78e6ca');
-    // Use popup for oauth
-    // Alternative is redirect
-    OAuth.popup('github').then(github => {
-      console.log(github);
-      // Retrieves user data from oauth provider
-      console.log(github.me());
-    });
-  })
-</script>
-
-
-
-
-<fb:login-button scope="public_profile,email" onlogin="sendTokenToServer();">
-  <a href='javascript:sendTokenToServer()'>Login with Facebook</a>
-
-</fb:login-button>
 
 <a href="https://github.com/login/oauth/authorize?client_id=1cf50fe0f7fcaa78e6ca&state={{STATE}}">
       Login with Github
@@ -151,7 +80,4 @@
 </a>
 
 
-
-
-<!-- END FACEBOOK SIGN -->
 {% endblock %}
