@@ -410,7 +410,18 @@ def showItems(category_id):
     else:
         return render_template('public_items.html', items = items,
                                 category = category, creator= creator)
-
+@app.route('/category/<int:category_id>/edit/', methods=['GET', 'POST'])
+def editCategory(category_id):
+  if 'username' not in login_session:
+    return redirect('/login')
+  editedCategory = session.query(Category).filter_by(id = category_id).one()
+  if request.method == 'POST':
+      if request.form['name']:
+        editedCategory.name = request.form['name']
+        flash('Category Successfully Edited %s' % editedCategory.name)
+        return redirect(url_for('showCategories'))
+  else:
+    return render_template('edit_category.html', category = editedCategory)
 
 # Delete a Category
 @app.route('/catalog/<int:category_id>/delete/', methods = ['GET','POST'])
