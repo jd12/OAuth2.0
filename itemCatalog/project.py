@@ -479,7 +479,7 @@ def editCatalogItem(category_id, items_id):
         flash('Item Successfully Edited')
         return redirect(url_for('showItems', category_id = category_id))
     else:
-        return render_template('editmenuitem.html', category_id = category_id, items_id = items_id, item = editedItem)
+        return render_template('edit_catalog_item.html', category_id = category_id, items_id = items_id, item = editedItem)
 
 
 # Delete a menu item
