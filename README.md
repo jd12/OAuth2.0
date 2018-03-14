@@ -1,5 +1,19 @@
-# OAuth2.0
-Starter Code for Auth&amp;Auth course
+# Item Catalog
+My Project submission for Item Catalog. This project assumes the user has Vagrant and VirtualBox installed. Instructions on getting set up with these tools can be found below 
+
+# Running the project 
+
+In order to run the project you need to go into the itemCatalog directory, set up the database, kick off the server, and then navigate to the webpage 
+
+```
+cd itemCatalog
+python database_setup.py # sets up the database
+python lotsofitems.py  # populates the database
+python project.py # kicks off the server
+```
+
+Then open up any Web Browser and navigate to **http://localhost:5000** to run the Item Catalog app
+
 # Installing the Vagrant VM for ud330 - Authentication & Authorization
 
 **Note: If you already have a vagrant machine installed from previous Udacity courses skip to the 'Fetch the Source Code and VM Configuration' section**
