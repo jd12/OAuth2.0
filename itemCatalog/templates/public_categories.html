@@ -38,6 +38,7 @@
 		<div class="col-md-1"></div>
 	</div>
 	{% for category in categories %}
+		<a href = "{{url_for('showItems', category_id = category.id)}}">
 			<div class="row">
 				<div class="col-md-1"></div>
 					<div class="col-md-10 restaurant-list">
@@ -45,5 +46,6 @@
 					</div>
 				<div class="col-md-1"></div>
 			</div>
+		</a>
 	{% endfor %}
 {% endblock %}

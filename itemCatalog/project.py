@@ -404,11 +404,11 @@ def showItems(category_id):
     category = session.query(Category).filter_by(id = category_id).one()
     items = session.query(CatalogItem).filter_by(category_id = category_id).all()
     creator = getUserInfo(category.user_id)
-    if getUserID(login_session['email']) == category.user_id:
+    if 'username' in login_session and getUserID(login_session['email']) == category.user_id:
         return render_template('items.html', items = items, category = category,
                             creator = creator)
     else:
-        return render_template('items.html', items = items,
+        return render_template('public_items.html', items = items,
                                 category = category, creator= creator)
 
 
