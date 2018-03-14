@@ -373,7 +373,7 @@ def catalogJSON():
     items = session.query(CatalogItem).all()
     return jsonify(categories=[c.serialize for c in categories], items=[i.serialize for i in items])
 
-# Show all restaurants
+# Show all categorys
 @app.route('/')
 @app.route('/catalog/')
 def showCategories():
@@ -393,9 +393,102 @@ def newCategory():
       session.add(newCategory)
       flash('New Category %s Successfully Created' % newCategory.name)
       session.commit()
-      return redirect(url_for('showCatalog'))
+      return redirect(url_for('showCategories'))
   else:
       return render_template('newCategory.html')
+
+# Show a category's items
+@app.route('/catalog/<int:category_id>/')
+@app.route('/catalog/<int:category_id>/items/')
+def showItems(category_id):
+    category = session.query(Category).filter_by(id = category_id).one()
+    items = session.query(CatalogItem).filter_by(category_id = category_id).all()
+    creator = getUserInfo(category.user_id)
+    if getUserID(login_session['email']) == category.user_id:
+        return render_template('items.html', items = items, category = category,
+                            creator = creator)
+    else:
+        return render_template('items.html', items = items,
+                                category = category, creator= creator)
+
+
+# Delete a Category
+@app.route('/catalog/<int:category_id>/delete/', methods = ['GET','POST'])
+def deleteCategory(category_id):
+  if 'username' not in login_session:
+    return redirect('/login')
+  categoryToDelete = session.query(Category).filter_by(id = category_id).one()
+  if request.method == 'POST':
+    session.delete(categoryToDelete)
+    flash('%s Successfully Deleted' % categoryToDelete.name)
+    session.commit()
+    return redirect(url_for('showCategories', category_id = category_id))
+  else:
+    return render_template('deleteCategory.html',category = categoryToDelete)
+
+# Create a new menu item
+@app.route('/catalog/<int:category_id>/items/new/',methods=['GET','POST'])
+def newCatalogItem(category_id):
+  if 'username' not in login_session:
+      return redirect('/login')
+  category = session.query(Category).filter_by(id = category_id).one()
+
+  creator = getUserInfo(category.user_id)
+  if getUserID(login_session['email']) != category.user_id:
+      return redirect(url_for('showItems', category_id = category_id))
+
+  if request.method == 'POST':
+      newItem = CatalogItem(name = request.form['name'], description = request.form['description'], category_id = category_id)
+      session.add(newItem)
+      session.commit()
+      flash('New Item %s Successfully Created' % (newItem.name))
+      return redirect(url_for('showItems', category_id = category_id))
+  else:
+      return render_template('newmenuitem.html', category_id = category_id)
+
+# Edit a menu item
+@app.route('/catalog/<int:category_id>/items/<int:items_id>/edit', methods=['GET','POST'])
+def editCatalogItem(category_id, items_id):
+    if 'username' not in login_session:
+        return redirect('/login')
+    editedItem = session.query(CatalogItem).filter_by(id = items_id).one()
+    category = session.query(Category).filter_by(id = category_id).one()
+    creator = getUserInfo(category.user_id)
+    if getUserID(login_session['email']) != category.user_id:
+        return redirect(url_for('showItems', category_id = category_id))
+
+    if request.method == 'POST':
+        if request.form['name']:
+            editedItem.name = request.form['name']
+        if request.form['description']:
+            editedItem.description = request.form['description']
+
+        session.add(editedItem)
+        session.commit()
+        flash('Item Successfully Edited')
+        return redirect(url_for('showItems', category_id = category_id))
+    else:
+        return render_template('editmenuitem.html', category_id = category_id, items_id = items_id, item = editedItem)
+
+
+# Delete a menu item
+@app.route('/catalog/<int:category_id>/items/<int:items_id>/delete', methods = ['GET','POST'])
+def deleteCatalogItem(category_id,items_id):
+    if 'username' not in login_session:
+        return redirect('/login')
+    category = session.query(Category).filter_by(id = category_id).one()
+    itemToDelete = session.query(CatalogItem).filter_by(id = items_id).one()
+    creator = getUserInfo(category.user_id)
+    if getUserID(login_session['email']) != category.user_id:
+        return redirect(url_for('showItems', category_id = category_id))
+
+    if request.method == 'POST':
+        session.delete(itemToDelete)
+        session.commit()
+        flash('Item Successfully Deleted')
+        return redirect(url_for('showItems', category_id = category_id))
+    else:
+        return render_template('deleteCatalogItem.html', item = itemToDelete)
 
 if __name__ == '__main__':
   app.secret_key = 'super_secret_key'
