@@ -424,7 +424,7 @@ def deleteCategory(category_id):
     session.commit()
     return redirect(url_for('showCategories', category_id = category_id))
   else:
-    return render_template('deleteCategory.html',category = categoryToDelete)
+    return render_template('delete_category.html',category = categoryToDelete)
 
 # Create a new menu item
 @app.route('/catalog/<int:category_id>/items/new/',methods=['GET','POST'])
@@ -444,7 +444,7 @@ def newCatalogItem(category_id):
       flash('New Item %s Successfully Created' % (newItem.name))
       return redirect(url_for('showItems', category_id = category_id))
   else:
-      return render_template('newmenuitem.html', category_id = category_id)
+      return render_template('new_catalog_item.html', category_id = category_id)
 
 # Edit a menu item
 @app.route('/catalog/<int:category_id>/items/<int:items_id>/edit', methods=['GET','POST'])
@@ -488,7 +488,7 @@ def deleteCatalogItem(category_id,items_id):
         flash('Item Successfully Deleted')
         return redirect(url_for('showItems', category_id = category_id))
     else:
-        return render_template('deleteCatalogItem.html', item = itemToDelete)
+        return render_template('delete_catalog_item.html', item = itemToDelete, category_id = category_id)
 
 if __name__ == '__main__':
   app.secret_key = 'super_secret_key'
